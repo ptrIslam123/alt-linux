@@ -32,15 +32,16 @@ TEST(Parser, ChechParsePackageJsonData) {
     })";
 
     const auto packageInfo = parser::ParsePackageJsonData(examplePackageJsonData);
-    const parser::PackagesInfo expectedPackageInfo = {
+    parser::PackagesInfo expectedPackageInfo;
+    expectedPackageInfo.packages = {
             {"i586-0ad", "0.0.26"},
             {"i586-4ti2-devel", "1.6.9"}
     };
 
-    std::for_each(packageInfo.cbegin(), packageInfo.cend(),
+    std::for_each(packageInfo.packages.cbegin(), packageInfo.packages.cend(),
                   [&expectedPackageInfo](const auto &info){
-        const auto expectInfo = expectedPackageInfo.find(info.first);
-        EXPECT_FALSE(expectInfo == expectedPackageInfo.cend());
+        const auto expectInfo = expectedPackageInfo.packages.find(info.first);
+        EXPECT_FALSE(expectInfo == expectedPackageInfo.packages.cend());
         EXPECT_EQ(expectInfo->second, info.second);
     });
 }
