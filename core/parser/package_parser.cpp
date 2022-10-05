@@ -10,7 +10,13 @@ PackagesInfo ParsePackageJsonData(const std::string &packageJsonData) {
     using json = nlohmann::json;
 
     PackagesInfo packageInfo;
-    const auto responseJson = json::parse(packageJsonData);
+    auto responseJson = decltype(json::parse(packageJsonData))();
+    try {
+        responseJson = json::parse(packageJsonData);
+    } catch (...) {
+        throw std::runtime_error("Can`t parse data. Invalid json format");
+    }
+
     const auto &arch = responseJson["request_args"]["arch"];
     const auto &packages = responseJson["packages"];
 

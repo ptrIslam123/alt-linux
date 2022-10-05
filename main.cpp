@@ -27,7 +27,7 @@ parser::PackagesInfo GetPackagesInfo(net::HttpClient &httpClient, const std::str
     const auto url = net::MakeHttpGetRequest(hostName, httpGetRequest, arch, branchName);
     const auto [status, response] = httpClient.sendRequest(url);
     if (!status) {
-        throw std::runtime_error(response);
+        throw std::runtime_error("Invalid http get request: " + response);
     }
     return parser::ParsePackageJsonData(response);
 }
@@ -64,15 +64,15 @@ void PrintHelpInfo() {
 }
 
 int main(int argc, char **argv) {
+    if (argc != 2 && argc != 4) {
+        std::cerr << "No passing input args: <branch1> <branch2> <output outputs>" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     const auto firstArg = std::string_view(argv[1]);
     if (argc == 2 && firstArg == std::string_view("-h")) {
         PrintHelpInfo();
         return EXIT_SUCCESS;
-    }
-
-    if (argc != 4) {
-        std::cerr << "No passing input args: <branch1> <branch2> <output outputs>" << std::endl;
-        return EXIT_FAILURE;
     }
 
     const auto firstBranchName(argv[1]);
