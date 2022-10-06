@@ -8,14 +8,14 @@
 
 ### Example:
     ./package-checker p9 p10 result.txt
-        p9 - name of the first branch
-        p10 - name of the second branch    
-        result.txt - output file name that will contains result
+        p9 - the first branch name
+        p10 - the second branch name    
+        result.txt - output file name that will contain the result
 
 ### Installation:
 - nlohmann_json:
   - cd external/
-  - rm -rf json
+  - rm -rf json/
   - git clone https://github.com/nlohmann/json.git
     
 - gtest: 
@@ -47,6 +47,7 @@
             "name": "string", "version": "string",
              ...
         }
-    ]
+    ],
+    ...
 }
 `
