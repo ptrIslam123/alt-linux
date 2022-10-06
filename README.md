@@ -15,17 +15,20 @@
 ### Installation:
 - nlohmann_json:
   - cd external/
+  - rm -rf json
   - git clone https://github.com/nlohmann/json.git
     
 - gtest: 
-  - sudo apt-get install libgtest-dev
+  - Ubuntu: sudo apt-get install libgtest-dev
+  - CentOs: sudo yum install gtest
   - cd /usr/src/gtest
   - sudo cmake CMakeLists.txt
   - sudo make
   - sudo cp *.a /usr/lib
   
 - curl:
-  - sudo apt-get install {libcurl4-gnutls-dev/libcurl4-openssl-dev/libcurl4-nss-dev}
+  - Ubuntu: sudo apt-get install curl
+  - CentOs: yum install curl
 
 ### Build projest:
     mkdir <build-directory>
