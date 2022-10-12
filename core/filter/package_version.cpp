@@ -1,5 +1,6 @@
 #include "package_version.h"
 
+#include <string>
 #include <stack>
 #include <cmath>
 
