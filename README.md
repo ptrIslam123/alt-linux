@@ -6,6 +6,9 @@
 ### Run program:
     ./package-checker <barch1> <branch2> <output-file-path>
 
+### Run docker image:
+    docker run -it <image-name>
+
 ### Example:
     ./package-checker p9 p10 result.txt
         p9 - the first branch name
@@ -35,6 +38,9 @@
     cd <build-directory>
     cmake ..
     make
+
+### Build docker image:
+    docker build -t <image-name> <docker-file-path>
 
 ### Json output format:
 `
