@@ -27,8 +27,8 @@
   - sudo cp *.a /usr/lib
   
 - curl:
-  - Ubuntu: sudo apt-get install curl
-  - CentOs: yum install curl
+  - Ubuntu: sudo apt-get install libcurl4-gnutls-dev
+  - CentOs: yum install libcurl4-gnutls-dev
 
 ### Build projest:
     mkdir <build-directory>
