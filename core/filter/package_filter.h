@@ -9,28 +9,21 @@
 
 namespace filter {
 
-typedef parser::PackagesInfo::Packages::const_iterator PackageInfoIter;
+typedef parser::PackagesInfo::Packages Packages;
+typedef Packages::const_iterator PackageInfoIter;
+typedef parser::PackagesInfo::PackageVersion PackageVersion;
 
-const auto GetFilterSamePackagesIntoTwoBranches = [](const parser::PackagesInfo &packagesInfo) {
-    return [&otherPackages = packagesInfo](const PackageInfoIter &it) {
-        return otherPackages.packages.find(it->first) != otherPackages.packages.cend();
+const auto GetFilterSamePackagesIntoTwoBranches = [](const Packages &packages) {
+    return [&otherPackages = packages](const PackageInfoIter &it) {
+        return otherPackages.find(it->first) != otherPackages.cend();
     };
 };
 
-const auto GetFilterPackagesWithVersionLessFromOtherBranches = [](const parser::PackagesInfo &packagesInfo) {
-    return [&otherPackages = packagesInfo](const PackageInfoIter &it){
-        const auto packageVersion = filter::PackageVersionStruct::GetPackageVersionStruct(it->second);
-        return packageVersion <= otherPackages.maxPackageVersion;
+const auto GetFilterPackagesWithVersionLessFromOtherBranches = [](const PackageVersion &maxPackageVersion) {
+    return [maxPackageVersion](const PackageInfoIter &it){
+        const auto packageVersion = filter::PackageVersionStruct::GetPackageVersionStruct(it->second.version);
+        return packageVersion <= maxPackageVersion;
     };
-};
-
-const auto Filter = [](const parser::PackagesInfo &packagesInfo,
-                              const auto &filter, parser::PackagesInfo &accumulate) {
-    for (auto it = packagesInfo.packages.cbegin(); it != packagesInfo.packages.cend(); ++it) {
-        if (!filter(it)) {
-            accumulate.packages.insert(std::make_pair(it->first, it->second));
-        }
-    }
 };
 
 } // namespace filter

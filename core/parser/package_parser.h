@@ -5,22 +5,43 @@
 #include <string_view>
 #include <map>
 #include <iostream>
+#include <vector>
 
 #include "core/filter/package_version.h"
 
 namespace parser {
 
-struct PackagesInfo {
-    typedef std::map<std::string, std::string> Packages;
+struct PackageStruct {
+    std::string name;
+    int epoch;
+    std::string version;
+    std::string release;
+    std::string arch;
+    std::string distTag;
+    int buildTime;
+    std::string source;
+
+    std::ostream &operator<<(std::ostream &ostream) const;
+};
+
+class PackagesInfo {
+public:
+    typedef std::string PackageName;
+    typedef std::map<PackageName, PackageStruct> Packages;
     typedef filter::PackageVersionStruct PackageVersion;
-    Packages packages;
-    PackageVersion maxPackageVersion;
+
+    void addPackage(PackageName &&packageName, PackageStruct &&packageStruct);
+    void updateMaxPackageVersion(PackageVersion &&packageVersion);
+    const Packages &getPackages() const;
+    const PackageVersion &getMaxPackageVersion() const;
+    std::ostream &operator<<(std::ostream &ostream) const;
+private:
+    Packages packages_;
+    PackageVersion maxPackageVersion_;
 };
 
 PackagesInfo ParsePackageJsonData(const std::string &packageJsonData);
-
-void WritePackageInfoTo(std::ostream &outs, std::string_view branch,
-                        std::string_view arch, parser::PackagesInfo &&packageInfo);
+std::ostream &operator<<(std::ostream &ostream, const PackageStruct &packageStruct);
 
 } // namespace parser
 

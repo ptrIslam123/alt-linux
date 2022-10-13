@@ -5,19 +5,13 @@ project(package-checker)
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(tests)
-add_subdirectory(external/json)
-add_subdirectory(core/parser)
-add_subdirectory(core/net)
-add_subdirectory(core/filter)
+add_subdirectory(external)
+add_subdirectory(core)
 
 add_executable(${PROJECT_NAME}
     main.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
-    nlohmann_json::nlohmann_json
-    parser
-    net
-    curl
-    package_filter
+    core
 )

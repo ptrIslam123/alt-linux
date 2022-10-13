@@ -17,43 +17,76 @@ PackagesInfo ParsePackageJsonData(const std::string &packageJsonData) {
         throw std::runtime_error("Can`t parse data. Invalid json format");
     }
 
-    const auto &arch = responseJson["request_args"]["arch"];
     const auto &packages = responseJson["packages"];
 
     for (const auto &package : packages) {
-        const auto &name = package["name"];
         const auto &version = package["version"];
-        {
-            const auto curPackageVersion = filter::PackageVersionStruct::GetPackageVersionStruct(std::string(version));
-            packageInfo.maxPackageVersion = std::max(packageInfo.maxPackageVersion, curPackageVersion);
-        }
-        packageInfo.packages.insert(std::make_pair(name, version));
+        const auto &name = package["name"];
+
+        PackageStruct packageStruct;
+        packageStruct.name = package["name"];
+        packageStruct.epoch = package["epoch"];
+        packageStruct.version = version;
+        packageStruct.release = package["release"];
+        packageStruct.arch = package["arch"];
+        packageStruct.distTag = package["disttag"];
+        packageStruct.buildTime = package["buildtime"];
+        packageStruct.source = package["source"];
+
+        packageInfo.addPackage(std::string(name), std::move(packageStruct));
+        packageInfo.updateMaxPackageVersion(
+                filter::PackageVersionStruct::GetPackageVersionStruct(std::string(version)));
     }
 
     return std::move(packageInfo);
 }
 
-void WritePackageInfoTo(std::ostream &outs, const std::string_view branchPair,
-                        const std::string_view arch, parser::PackagesInfo &&packageInfo) {
-    outs << "\t\"branch_pair\": " << "\"" << branchPair << "\",\n";
-    outs << "\t\"arch\": " << "\"" << arch << "\",\n";
-    outs << "\t\"packages\": [\n";
-    outs << "\t\t{\n";
-    const auto &packages = packageInfo.packages;
-    for (auto it = packages.cbegin(); it != packages.cend(); ++it) {
-        outs << "\t\t\t\"name\": " << "\"" << it->first << "\", ";
-        outs << "\"version\": " << "\"" << it->second << "\"";
-
-        const auto eof = it == --packages.cend();
-        if (!eof) {
-            outs << ",\n";
-        } else {
-            outs << "\n";
-        }
-    }
-    outs << "\t\t}\n";
-    outs << "\t]\n";
+std::ostream &operator<<(std::ostream &ostream, const PackageStruct &packageStruct) {
+    return packageStruct.operator<<(ostream);
 }
 
+std::ostream &PackagesInfo::operator<<(std::ostream &ostream) const {
+    const auto offset = "\t\t";
+    ostream << offset << "{\n";
+    for (auto it = packages_.cbegin(); it != packages_.cend(); ++it) {
+        it->second.operator<<(ostream);
+        if (auto next = it; ++next != packages_.cend()) {
+            ostream << offset << ",\n";
+        }
+    }
+    ostream << offset << "}\n";
+    return ostream;
+}
+
+void PackagesInfo::addPackage(PackageName &&packageName,PackageStruct &&packageStruct) {
+    packages_.insert(std::make_pair(packageName, packageStruct));
+}
+
+void PackagesInfo::updateMaxPackageVersion(PackagesInfo::PackageVersion &&packageVersion) {
+    maxPackageVersion_ = std::max(maxPackageVersion_, packageVersion);
+}
+
+const PackagesInfo::Packages &PackagesInfo::getPackages() const {
+    return packages_;
+}
+
+const PackagesInfo::PackageVersion &PackagesInfo::getMaxPackageVersion() const {
+    return maxPackageVersion_;
+}
+
+std::ostream &PackageStruct::operator<<(std::ostream &ostream) const {
+    const auto offset = "\t\t\t";
+    ostream << offset << "{\n";
+    ostream << offset << "\t\"name\": \"" << name << "\",\n";
+    ostream << offset << "\t\"epoch\": " << epoch << ",\n";
+    ostream << offset << "\t\"version\": \"" << version << "\",\n";
+    ostream << offset << "\t\"release\": \"" << release << "\",\n";
+    ostream << offset << "\t\"arch\": \"" << arch << "\",\n";
+    ostream << offset << "\t\"disttag\": \""  << distTag << "\",\n";
+    ostream << offset << "\t\"buildtime\": " << buildTime << ",\n";
+    ostream << offset << "\t\"source\": \"" << source << "\"\n";
+    ostream << offset << "}\n";
+    return ostream;
+}
 
 } // namespace parser
