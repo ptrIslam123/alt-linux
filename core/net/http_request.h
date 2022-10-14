@@ -18,9 +18,6 @@ private:
     CURL *curlInstance_;
 };
 
-std::string MakeHttpGetRequest(std::string_view host, std::string_view request,
-                               std::string_view arch, std::string_view branch);
-
 } // namespace net
 
 #endif //PACKAGE_CHECKER_HTTP_REQUEST_H

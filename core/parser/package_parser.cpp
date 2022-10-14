@@ -35,7 +35,7 @@ PackagesInfo ParsePackageJsonData(const std::string &packageJsonData) {
 
         packageInfo.addPackage(std::string(name), std::move(packageStruct));
         packageInfo.updateMaxPackageVersion(
-                filter::PackageVersionStruct::GetPackageVersionStruct(std::string(version)));
+                parser::PackageVersionStruct::GetPackageVersionStruct(std::string(version)));
     }
 
     return std::move(packageInfo);
@@ -74,6 +74,10 @@ const PackagesInfo::PackageVersion &PackagesInfo::getMaxPackageVersion() const {
     return maxPackageVersion_;
 }
 
+PackagesInfo::Packages &PackagesInfo::getPackages() {
+    return packages_;
+}
+
 std::ostream &PackageStruct::operator<<(std::ostream &ostream) const {
     const auto offset = "\t\t\t";
     ostream << offset << "{\n";
@@ -87,6 +91,19 @@ std::ostream &PackageStruct::operator<<(std::ostream &ostream) const {
     ostream << offset << "\t\"source\": \"" << source << "\"\n";
     ostream << offset << "}\n";
     return ostream;
+}
+
+bool PackageStruct::operator==(const PackageStruct &other) const {
+    const auto isEqName = name == other.name;
+    const auto isEqEpoch = epoch == other.epoch;
+    const auto isEqVersion = version == other.version;
+    const auto isEqRelease = release == other.release;
+    const auto isEqArch = arch == other.arch;
+    const auto isEqDistTag = distTag == other.distTag;
+    const auto isEqBuildTime = buildTime == other.buildTime;
+    const auto isEqSource = source == other.source;
+    return isEqName && isEqEpoch && isEqVersion && isEqRelease && isEqArch && isEqDistTag &&
+            isEqBuildTime && isEqSource;
 }
 
 } // namespace parser

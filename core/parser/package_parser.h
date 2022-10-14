@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 
-#include "core/filter/package_version.h"
+#include "package_version.h"
 
 namespace parser {
 
@@ -21,6 +21,7 @@ struct PackageStruct {
     int buildTime;
     std::string source;
 
+    bool operator==(const PackageStruct &other) const;
     std::ostream &operator<<(std::ostream &ostream) const;
 };
 
@@ -28,11 +29,12 @@ class PackagesInfo {
 public:
     typedef std::string PackageName;
     typedef std::map<PackageName, PackageStruct> Packages;
-    typedef filter::PackageVersionStruct PackageVersion;
+    typedef parser::PackageVersionStruct PackageVersion;
 
     void addPackage(PackageName &&packageName, PackageStruct &&packageStruct);
     void updateMaxPackageVersion(PackageVersion &&packageVersion);
     const Packages &getPackages() const;
+    Packages &getPackages();
     const PackageVersion &getMaxPackageVersion() const;
     std::ostream &operator<<(std::ostream &ostream) const;
 private:

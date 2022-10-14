@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 #include <vector>
-#include <sstream>
 #include <cstring>
 
 namespace {
@@ -50,7 +49,6 @@ HttpClient::Response HttpClient::sendRequest(const std::string &url) {
         throw std::runtime_error("Can`t init curl instance");
     }
 
-    /// TODO Подумать о более эффективном использовании памяти
     MemBuffer rawMemory(65536);
     curl_easy_setopt(curlInstance_, CURLOPT_URL, url.data());
     curl_easy_setopt(curlInstance_, CURLOPT_WRITEFUNCTION, ReceiveDataEventHandler);
@@ -68,16 +66,6 @@ HttpClient::Response HttpClient::sendRequest(const std::string &url) {
     rawMemory.size = 0;
     rawMemory.buffer.clear();
     return std::move(response);
-}
-
-std::string MakeHttpGetRequest(const std::string_view host, const std::string_view request,
-                               const std::string_view arch, const std::string_view branch) {
-    std::stringstream oss;
-    oss << host << "/";
-    oss << request << "/";
-    oss << branch << "?arch=";
-    oss << arch;
-    return oss.str();
 }
 
 } // namespace net

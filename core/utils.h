@@ -10,13 +10,8 @@
 namespace core {
 
 parser::PackagesInfo DoHttpsRequest(const std::string &request);
-
-enum class JsonDataType {
-    PackagesFilteredToFirstBranch,
-    PackagesFilteredToSecondBranch,
-    PackagesFilteredByPackageVersion
-};
-
+std::string MakeHttpGetRequest(std::string_view host, std::string_view request,
+                               std::string_view arch, std::string_view branch);
 
 } // namespace core
 

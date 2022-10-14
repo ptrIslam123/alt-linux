@@ -3,7 +3,7 @@
 
 #include <string_view>
 
-namespace filter {
+namespace parser {
 
 class PackageVersionStruct {
 public:
@@ -26,6 +26,6 @@ private:
     Version version_;
 };
 
-} // namespace filter
+} // namespace parser
 
 #endif //PACKAGE_CHECKER_PACKAGE_VERSION_H

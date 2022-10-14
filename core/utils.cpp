@@ -12,8 +12,14 @@ parser::PackagesInfo DoHttpsRequest(const std::string &request) {
     return parser::ParsePackageJsonData(response);
 }
 
-void SerializePackageInfoTo(std::ostream &outs, const JsonDataType dataType, const parser::PackagesInfo &packageInfo) {
-
+std::string MakeHttpGetRequest(const std::string_view host, const std::string_view request,
+                               const std::string_view arch, const std::string_view branch) {
+    std::stringstream oss;
+    oss << host << "/";
+    oss << request << "/";
+    oss << branch << "?arch=";
+    oss << arch;
+    return oss.str();
 }
 
 } // namespace core

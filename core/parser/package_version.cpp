@@ -4,7 +4,7 @@
 #include <stack>
 #include <cmath>
 
-namespace filter {
+namespace parser {
 
 /**
  * @brief for example version: [2.3.1] -> [2 * 10^2 + 3 * 10^1 + 1 * 10^0]
@@ -62,4 +62,4 @@ PackageVersionStruct::PackageVersionStruct():
 version_(0) {
 }
 
-} // namespace filter
+} // namespace parser
