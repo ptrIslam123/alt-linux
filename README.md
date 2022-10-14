@@ -4,16 +4,12 @@
     curl: https://github.com/curl/curl           
 
 ### Run program:
-    ./package-checker <barch1> <branch2> <output-file-path>
-
-### Run docker image:
-    docker run -it <image-name>
+    ./package-checker <barch1> <branch2>
 
 ### Example:
-    ./package-checker p9 p10 result.txt
+    ./package-checker p9 p10
         p9 - the first branch name
         p10 - the second branch name    
-        result.txt - output file name that will contain the result
 
 ### Installation:
 - nlohmann_json:
@@ -39,21 +35,29 @@
     cmake ..
     make
 
-### Build docker image:
-    docker build -t <image-name> <docker-file-path>
-
 ### Json output format:
 `
 {
-    "branch_pair": "string:string",
-    "arch": "string",
-    "packages": [
+    "for_arch": "string",
+    "report": [
         {
-            "name": "string", "version": "string",
-            "name": "string", "version": "string",
-             ...
+            "unique_package_from_p9": [
+                {
+                    "name": "string",
+                    "epoch": int,
+                    "version": "string",
+                    "release": "string",
+                    "arch": "string",
+                    "disttag": "string",
+                    "buildtime": int,
+                    "source": "string"
+                }
+                ,
+                ...
         }
-    ],
-    ... 
+        ,
+        ...
+    ]
 }
+,
 `
