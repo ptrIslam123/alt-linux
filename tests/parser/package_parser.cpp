@@ -33,16 +33,37 @@ TEST(Parser, ChechParsePackageJsonData) {
 
     const auto packageInfo = parser::ParsePackageJsonData(examplePackageJsonData);
     parser::PackagesInfo expectedPackageInfo;
-    expectedPackageInfo.packages = {
-            {"i586-0ad", "0.0.26"},
-            {"i586-4ti2-devel", "1.6.9"}
-    };
+    {
+        parser::PackageStruct package;
+        package.name = "i586-4ti2-devel";
+        package.epoch = 0;
+        package.version = "1.6.9";
+        package.release = "alt1_7";
+        package.arch = "x86_64-i586";
+        package.distTag = "sisyphus+258318.100.1.1";
+        package.buildTime = 1600446138;
+        package.source = "";
+        expectedPackageInfo.addPackage(std::string(package.name), std::move(package));
+    }
+    {
+        parser::PackageStruct package;
+        package.name = "i586-0ad";
+        package.epoch = 1;
+        package.version = "0.0.26";
+        package.release = "alt0_0_rc1.p10";
+        package.arch = "x86_64-i586";
+        package.distTag = "p10+303432.100.3.1";
+        package.buildTime = 1657804386;
+        package.source = "";
+        expectedPackageInfo.addPackage(std::string(package.name), std::move(package));
+    }
 
-    std::for_each(packageInfo.packages.cbegin(), packageInfo.packages.cend(),
+    const auto &packages = packageInfo.getPackages();
+    std::for_each(packages.cbegin(), packages.cend(),
                   [&expectedPackageInfo](const auto &info){
-        const auto expectInfo = expectedPackageInfo.packages.find(info.first);
-        EXPECT_FALSE(expectInfo == expectedPackageInfo.packages.cend());
-        EXPECT_EQ(expectInfo->second, info.second);
+        const auto expectPackage = expectedPackageInfo.getPackages().find(info.first);
+        EXPECT_FALSE(expectPackage == expectedPackageInfo.getPackages().cend());
+        EXPECT_EQ(expectPackage->second, info.second);
     });
 }
 
