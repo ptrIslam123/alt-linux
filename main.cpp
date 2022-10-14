@@ -1,16 +1,11 @@
 #include <iostream>
 #include <string>
-#include <fstream>
 #include <array>
 #include <string_view>
-#include <sstream>
 
-#include "core/filter/package_filter.h"
 #include "core/utils.h"
+#include "package_filter.h"
 
-constexpr auto outputJsonDataSectionCapacity = 3;
-typedef std::vector<parser::PackageStruct> Packages;
-typedef std::array<Packages, outputJsonDataSectionCapacity> FilteredPackageList;
 constexpr auto architecturesCapacity = 6;
 const std::array<std::string, architecturesCapacity> architectures = {
         "x86_64-i586",
@@ -24,49 +19,12 @@ const std::array<std::string, architecturesCapacity> architectures = {
 std::string GetHttpsRequestUrl(const std::string_view arch, const std::string_view branchName) {
     static const auto hostName("https://rdb.altlinux.org");
     static const auto httpGetRequest("api/export/branch_binary_packages");
-    return net::MakeHttpGetRequest(hostName, httpGetRequest, arch, branchName);
-}
-
-void FilterPackages(parser::PackagesInfo &&firstPackagesInfo,
-                                              parser::PackagesInfo &&secondPackagesInfo,
-                                              FilteredPackageList &output) {
-    using namespace filter;
-    const auto filterForFirstSection =
-            filter::GetFilterSamePackagesIntoTwoBranches(secondPackagesInfo.getPackages());
-    const auto filterForSecondSection =
-            filter::GetFilterSamePackagesIntoTwoBranches(firstPackagesInfo.getPackages());
-    const auto filterForThirdSection =
-            filter::GetFilterPackagesWithVersionLessFromOtherBranches(secondPackagesInfo.getMaxPackageVersion());
-
-    auto firstIt = firstPackagesInfo.getPackages().cbegin();
-    auto secondIt = secondPackagesInfo.getPackages().cbegin();
-    const auto secondItEnd = secondPackagesInfo.getPackages().cend();
-    const auto firstItEnd = firstPackagesInfo.getPackages().cend();
-
-    while (firstIt != firstItEnd && secondIt != secondItEnd) {
-        if (firstIt != firstItEnd) {
-            if (!filterForFirstSection(firstIt)) {
-                output[0].push_back(firstIt->second);
-            }
-            if (!filterForThirdSection(firstIt)) {
-                output[2].push_back(firstIt->second);
-                ++firstIt;
-            }
-            ++firstIt;
-        }
-
-        if (secondIt != secondItEnd) {
-            if (!filterForSecondSection(secondIt)) {
-                output[1].push_back(secondIt->second);
-            }
-            ++secondIt;
-        }
-    }
+    return core::MakeHttpGetRequest(hostName, httpGetRequest, arch, branchName);
 }
 
 void WriteOutputPackageListTo(std::ostream &ostream, const std::string_view firstBranch,
                               const std::string_view secondBranch, const std::string_view arch,
-                              const FilteredPackageList &filteredPackageList) {
+                              const filter::FilteredPackageList &filteredPackageList) {
     const auto offset = "\t";
     const auto writePackagesToStream = [&ostream, offset](const auto &packages){
         for (auto i = 0; i < packages.size(); ++i) {
@@ -95,14 +53,36 @@ void WriteOutputPackageListTo(std::ostream &ostream, const std::string_view firs
     ostream << offset << "]\n";
 }
 
+void GetPackagesDiffAndWriteTo(const std::string_view firstBranch, const std::string_view secondBranch,
+                               std::ostream &outputs) {
+    outputs << "{\n";
+    filter::FilteredPackageList filteredPackageList;
+    for (auto i = 0; i < architecturesCapacity; ++i) {
+        const auto &arch(architectures[i]);
+        auto firstPackagesInfo = core::DoHttpsRequest(GetHttpsRequestUrl(arch, firstBranch));
+        auto secondPackagesInfo = core::DoHttpsRequest(GetHttpsRequestUrl(arch, secondBranch));
+
+        filter::FilterPackages(std::move(firstPackagesInfo), std::move(secondPackagesInfo), filteredPackageList);
+        WriteOutputPackageListTo(outputs, firstBranch, secondBranch, arch, filteredPackageList);
+        std::for_each(filteredPackageList.begin(), filteredPackageList.end(), [](auto &packages){
+            packages.clear();
+        });
+
+        if (i + 1 < architecturesCapacity) {
+            outputs << ",\n";
+        }
+    }
+    outputs << "\n}" << std::endl;
+}
+
 void PrintHelpInfo() {
-    std::cout << "./package-checker <branch1> <branch2> <output>      - Run analyzer packages for branch1 and branch2\n";
-    std::cout << "./package-checker -h                                - Display help info about program" << std::endl;
+    std::cout << "./package-checker <branch1> <branch2>       - Run analyzer packages for branch1 and branch2\n";
+    std::cout << "./package-checker -h                         - Display help info about program" << std::endl;
 }
 
 int main(int argc, char **argv) {
     if (argc != 2 && argc != 4) {
-        std::cerr << "No passing input args: <branch1> <branch2> <output outputs>" << std::endl;
+        std::cerr << "No passing input args: <branch1> <branch2>" << std::endl;
         return EXIT_FAILURE;
     }
 
@@ -114,30 +94,6 @@ int main(int argc, char **argv) {
 
     const auto firstBranchName(argv[1]);
     const auto secondBranchName(argv[2]);
-    std::ofstream file(argv[3]);
-    if (!file.is_open()) {
-        std::cerr << "Can`t open output file" << std::endl;
-        return EXIT_FAILURE;
-    }
-    std::ostream &outputs = file;
-
-    outputs << "{\n";
-    FilteredPackageList filteredPackageList;
-    for (auto i = 0; i < architecturesCapacity; ++i) {
-        const auto &arch(architectures[i]);
-        auto firstPackagesInfo = core::DoHttpsRequest(GetHttpsRequestUrl(arch, firstBranchName));
-        auto secondPackagesInfo = core::DoHttpsRequest(GetHttpsRequestUrl(arch, secondBranchName));
-
-        FilterPackages(std::move(firstPackagesInfo), std::move(secondPackagesInfo), filteredPackageList);
-        WriteOutputPackageListTo(outputs, firstBranchName, secondBranchName, arch, filteredPackageList);
-        std::for_each(filteredPackageList.begin(), filteredPackageList.end(), [](auto &packages){
-            packages.clear();
-        });
-
-        if (i + 1 < architecturesCapacity) {
-            outputs << ",\n";
-        }
-    }
-    outputs << "\n}" << std::endl;
+    GetPackagesDiffAndWriteTo(firstBranchName, secondBranchName, std::cout);
     return EXIT_SUCCESS;
 }

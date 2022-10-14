@@ -5,26 +5,16 @@
 #include <vector>
 
 #include "core/parser/package_parser.h"
-#include "package_version.h"
+#include "core/parser/package_version.h"
 
 namespace filter {
 
-typedef parser::PackagesInfo::Packages Packages;
-typedef Packages::const_iterator PackageInfoIter;
-typedef parser::PackagesInfo::PackageVersion PackageVersion;
+constexpr auto outputJsonDataSectionCapacity = 3;
+typedef std::array<std::vector<parser::PackageStruct>, outputJsonDataSectionCapacity> FilteredPackageList;
 
-const auto GetFilterSamePackagesIntoTwoBranches = [](const Packages &packages) {
-    return [&otherPackages = packages](const PackageInfoIter &it) {
-        return otherPackages.find(it->first) != otherPackages.cend();
-    };
-};
-
-const auto GetFilterPackagesWithVersionLessFromOtherBranches = [](const PackageVersion &maxPackageVersion) {
-    return [maxPackageVersion](const PackageInfoIter &it){
-        const auto packageVersion = filter::PackageVersionStruct::GetPackageVersionStruct(it->second.version);
-        return packageVersion <= maxPackageVersion;
-    };
-};
+void FilterPackages(parser::PackagesInfo &&firstPackagesInfo,
+                    parser::PackagesInfo &&secondPackagesInfo,
+                    FilteredPackageList &output);
 
 } // namespace filter
 
